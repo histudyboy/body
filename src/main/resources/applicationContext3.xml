@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"   xmlns:aop="http://www.springframework.org/schema/aop" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+     http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.2.xsd
+     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd"
+
+	 default-lazy-init="true">
+	<description>spring 数据库配置</description>
+		<context:property-placeholder
+			ignore-unresolvable="true" location="classpath*:/jdbc.properties" />
+			
+		 <bean id="accountDao" class="com.bj.ict2.dao.AccountDao">
+			<property name="dataSource" ref="dataSource"></property>
+		</bean>
+		<bean id="accountService" class="com.bj.ict2.service.AccountService">
+			<property name="accountDao" ref="accountDao"></property>
+		</bean>
+		<bean id="transactionManager"
+			class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+			<property name="dataSource" ref="dataSource"></property>
+		</bean>
+		<!-- 配置事务的通知：（事务的增强） -->
+		<tx:advice id="txAdvice" transaction-manager="transactionManager">
+			<tx:attributes>
+				<tx:method name="money" propagation="REQUIRED"/>
+			</tx:attributes>
+		</tx:advice>
+		<!-- 配置切面 -->
+		<aop:config>
+			<!-- 配置切面点 -->
+			<aop:pointcut expression="execution(* com.bj.ict2.service.AccountService.*(..))" id="pointcut1"/>
+			<!-- 配置切面 -->
+			<aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut1"/>
+		</aop:config>
+		<!-- c3p0连接池配置 -->
+		<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+			<!-- 用户名 -->
+			<property name="user" value="${jdbc.username}" />
+			<!-- 用户密码 -->
+			<property name="password" value="${jdbc.password}" />
+			<property name="driverClass" value="${jdbc.driver}" />
+			<property name="jdbcUrl" value="${jdbc.url}" />
+		</bean>
+	
+</beans>

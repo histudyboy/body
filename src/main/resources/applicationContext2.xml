@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+     http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.2.xsd"
+
+	 default-lazy-init="true">
+	<description>spring 数据库配置</description>
+		<context:property-placeholder
+			ignore-unresolvable="true" location="classpath*:/jdbc.properties" />
+			
+		 <bean id="accountDao" class="com.bj.ict1.dao.AccountDao">
+			<property name="dataSource" ref="dataSource"></property>
+		</bean>
+		<bean id="accountService" class="com.bj.ict1.service.AccountService">
+			<property name="accountDao" ref="accountDao"></property>
+		</bean>
+		<bean id="transactionManager"
+			class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+			<property name="dataSource" ref="dataSource"></property>
+		</bean>
+		 <bean id="accountTransactionProxy" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
+				     >
+				   <property name="target" ref="accountService"></property>
+				   <property name="transactionManager" ref="transactionManager"/>
+				   <property name="transactionAttributes">
+				    <props>
+				    <!-- 
+				    	prop的格式：
+				    		PROPAGATION  ：事务的传播行为
+				    		ISOLATION    :事物的隔离级别
+				    		readOnly     ：只读
+				    		-Exception   :发生哪些异常回滚事务
+				    		+Exception   ：发生哪些异常不会滚事务
+				     -->
+				      <prop key="money">PROPAGATION_REQUIRED</prop>
+				  </props>
+				   </property>
+		  </bean>
+ 
+		<!-- c3p0连接池配置 -->
+		<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+			<!-- 用户名 -->
+			<property name="user" value="${jdbc.username}" />
+			<!-- 用户密码 -->
+			<property name="password" value="${jdbc.password}" />
+			<property name="driverClass" value="${jdbc.driver}" />
+			<property name="jdbcUrl" value="${jdbc.url}" />
+		</bean>
+	
+</beans>
